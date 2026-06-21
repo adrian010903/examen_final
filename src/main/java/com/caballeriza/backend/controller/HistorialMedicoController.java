@@ -71,6 +71,7 @@ public class HistorialMedicoController {
                 .alergias(dto.getAlergias())
                 .observaciones(dto.getObservaciones())
                 .fecha(dto.getFecha())
+                .fechaProxima(dto.getFechaProxima())
                 .responsable(dto.getResponsable())
                 .caballo(caballo)
                 .build();

@@ -54,6 +54,7 @@ public class HistorialMedicoServiceImpl implements HistorialMedicoService {
         historial.setAlergias(datos.getAlergias());
         historial.setObservaciones(datos.getObservaciones());
         historial.setFecha(datos.getFecha());
+        historial.setFechaProxima(datos.getFechaProxima());
         historial.setResponsable(datos.getResponsable());
 
         if (datos.getCaballo() != null && datos.getCaballo().getId() != null) {

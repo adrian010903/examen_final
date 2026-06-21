@@ -34,7 +34,6 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
-
                         // SOLO ADMINISTRADOR
                         .requestMatchers("/api/empleados/**")
                         .hasRole("ADMINISTRADOR")
@@ -49,8 +48,6 @@ public class SecurityConfig {
                         // ADMINISTRADOR, VETERINARIO Y CUIDADOR
                         .requestMatchers(
                                 "/api/caballos/**",
-                                "/api/planes-alimentacion/**",
-                                "/api/suministros/**",
                                 "/api/tareas/**",
                                 "/api/turnos/**"
                         )
@@ -60,10 +57,29 @@ public class SecurityConfig {
                                 "CUIDADOR"
                         )
 
-                        // INVENTARIO
-                        .requestMatchers("/api/inventario/**")
+                        // ALIMENTACION E INVENTARIO
+                        .requestMatchers(
+                                "/api/planes-alimentacion/**",
+                                "/api/suministros/**",
+                                "/api/inventario/**"
+                        )
                         .hasAnyRole(
                                 "ADMINISTRADOR",
+                                "CUIDADOR"
+                        )
+
+                        // RESERVAS
+                        .requestMatchers("/api/reservas/**")
+                        .hasAnyRole(
+                                "ADMINISTRADOR",
+                                "CLIENTE"
+                        )
+
+                        // ALERTAS
+                        .requestMatchers("/api/alertas/**")
+                        .hasAnyRole(
+                                "ADMINISTRADOR",
+                                "VETERINARIO",
                                 "CUIDADOR"
                         )
 

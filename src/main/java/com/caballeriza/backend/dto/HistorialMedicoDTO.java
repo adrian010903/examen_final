@@ -27,6 +27,8 @@ public class HistorialMedicoDTO {
     @NotNull(message = "La fecha es obligatoria")
     private LocalDate fecha;
 
+    private LocalDate fechaProxima;
+
     @NotBlank(message = "El responsable es obligatorio")
     private String responsable;
 

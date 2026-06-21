@@ -25,6 +25,7 @@ public class Tarea {
     @NotNull
     private LocalDate fecha;
 
+    @Builder.Default
     private Boolean completada = false;
 
     @ManyToOne

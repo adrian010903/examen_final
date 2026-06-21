@@ -33,6 +33,8 @@ public class HistorialMedico {
     @NotNull
     private LocalDate fecha;
 
+    private LocalDate fechaProxima;
+
     @NotBlank
     private String responsable;
 

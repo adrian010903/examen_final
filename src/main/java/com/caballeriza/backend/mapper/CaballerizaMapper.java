@@ -57,6 +57,7 @@ public class CaballerizaMapper {
                 .alergias(historial.getAlergias())
                 .observaciones(historial.getObservaciones())
                 .fecha(historial.getFecha())
+                .fechaProxima(historial.getFechaProxima())
                 .responsable(historial.getResponsable())
                 .caballoId(historial.getCaballo() != null ? historial.getCaballo().getId() : null)
                 .nombreCaballo(historial.getCaballo() != null ? historial.getCaballo().getNombre() : null)
@@ -130,6 +131,23 @@ public class CaballerizaMapper {
                 .cantidad(dto.getCantidad())
                 .stockMinimo(dto.getStockMinimo())
                 .unidad(dto.getUnidad())
+                .build();
+    }
+
+    public static ReservaDTO toReservaDTO(Reserva reserva) {
+        return ReservaDTO.builder()
+                .id(reserva.getId())
+                .tipo(reserva.getTipo())
+                .estado(reserva.getEstado())
+                .fecha(reserva.getFecha())
+                .horaInicio(reserva.getHoraInicio())
+                .horaFin(reserva.getHoraFin())
+                .cliente(reserva.getCliente())
+                .observaciones(reserva.getObservaciones())
+                .caballoId(reserva.getCaballo() != null ? reserva.getCaballo().getId() : null)
+                .nombreCaballo(reserva.getCaballo() != null ? reserva.getCaballo().getNombre() : null)
+                .empleadoId(reserva.getEmpleado() != null ? reserva.getEmpleado().getId() : null)
+                .nombreEmpleado(reserva.getEmpleado() != null ? reserva.getEmpleado().getNombre() : null)
                 .build();
     }
 }
