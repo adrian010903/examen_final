@@ -22,17 +22,54 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf -> csrf.disable())
+
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+
                 .authorizeHttpRequests(auth -> auth
+
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
+
+                        // SOLO ADMINISTRADOR
+                        .requestMatchers("/api/empleados/**")
+                        .hasRole("ADMINISTRADOR")
+
+                        // ADMINISTRADOR Y VETERINARIO
+                        .requestMatchers("/api/historial-medico/**")
+                        .hasAnyRole(
+                                "ADMINISTRADOR",
+                                "VETERINARIO"
+                        )
+
+                        // ADMINISTRADOR, VETERINARIO Y CUIDADOR
+                        .requestMatchers(
+                                "/api/caballos/**",
+                                "/api/planes-alimentacion/**",
+                                "/api/suministros/**",
+                                "/api/tareas/**",
+                                "/api/turnos/**"
+                        )
+                        .hasAnyRole(
+                                "ADMINISTRADOR",
+                                "VETERINARIO",
+                                "CUIDADOR"
+                        )
+
+                        // INVENTARIO
+                        .requestMatchers("/api/inventario/**")
+                        .hasAnyRole(
+                                "ADMINISTRADOR",
+                                "CUIDADOR"
+                        )
+
                         .anyRequest().authenticated()
                 )
+
                 .formLogin(form -> form.disable());
 
         http.addFilterBefore(
