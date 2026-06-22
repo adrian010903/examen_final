@@ -21,14 +21,15 @@ public class ReservaController {
 
     @GetMapping
     public List<ReservaDTO> listar(
+            @RequestParam(required = false) TipoReserva tipo,
+            @RequestParam(required = false) EstadoReserva estado,
+            @RequestParam(required = false) LocalDate fecha,
             @RequestParam(required = false) LocalDate inicio,
             @RequestParam(required = false) LocalDate fin
     ) {
-        List<Reserva> reservas = inicio != null && fin != null
-                ? reservaService.listarPorRango(inicio, fin)
-                : reservaService.listar();
-
-        return reservas.stream()
+        return reservaService
+                .filtrar(tipo, fecha, estado, inicio, fin)
+                .stream()
                 .map(CaballerizaMapper::toReservaDTO)
                 .toList();
     }
@@ -77,6 +78,8 @@ public class ReservaController {
                 .horaFin(dto.getHoraFin())
                 .cliente(dto.getCliente())
                 .observaciones(dto.getObservaciones())
+                .cantidadPersonas(dto.getCantidadPersonas())
+                .cupoMaximo(dto.getCupoMaximo())
                 .caballo(caballo)
                 .empleado(empleado)
                 .build();

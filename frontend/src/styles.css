@@ -147,3 +147,285 @@ tr:last-child td { border-bottom: 0; }
   .formActions { display: grid; grid-template-columns: 1fr; }
   .formActions button, .formActions .primaryButton, .formActions .secondaryButton { width: 100%; }
 }
+.reservationFilters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 18px;
+}
+
+.reservationSectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.reservationMessage {
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.reservationError {
+  border: 1px solid #e5a1a1;
+  background: #fff3f3;
+  color: #a52a2a;
+}
+
+.reservationSuccess {
+  border: 1px solid #9ccfb1;
+  background: #effaf3;
+  color: #23734b;
+}
+
+.calendarItemContent {
+  width: 100%;
+}
+
+.reservationActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.capacityStatus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #edf7f1;
+  color: #23734b;
+  font-weight: 700;
+}
+
+.capacityFull {
+  background: #fff0f0;
+  color: #c43d3d;
+}
+
+@media (max-width: 900px) {
+  .reservationFilters {
+    grid-template-columns: 1fr;
+  }
+
+  .reservationSectionHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .reservationActions {
+    flex-direction: column;
+  }
+
+  .reservationActions button {
+    width: 100%;
+  }
+}
+
+.alertsToolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.alertsToolbarActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.alertsToolbarActions select {
+  min-width: 180px;
+}
+
+.alertCardContent {
+  width: 100%;
+}
+
+.alertCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.alertUnread {
+  box-shadow: 0 8px 24px rgba(20, 50, 40, 0.12);
+}
+
+.alertRead {
+  opacity: 0.72;
+  background: #f7f8f7;
+}
+
+.readStatus {
+  flex-shrink: 0;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.readStatusPending {
+  background: #fff0d8;
+  color: #9a5b00;
+}
+
+.readStatusDone {
+  background: #eaf5ee;
+  color: #26734d;
+}
+
+.alertActions {
+  display: flex;
+  margin-top: 14px;
+}
+
+.alertPageError {
+  padding: 14px 18px;
+  border: 1px solid #e5a1a1;
+  border-radius: 10px;
+  background: #fff3f3;
+  color: #a52a2a;
+  font-weight: 600;
+}
+
+@media (max-width: 800px) {
+  .alertsToolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .alertsToolbarActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .alertsToolbarActions select,
+  .alertsToolbarActions button {
+    width: 100%;
+  }
+
+  .alertCardHeader {
+    flex-direction: column;
+  }
+}
+
+```css
+.feedingToolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.feedingToolbar select {
+  min-width: 240px;
+}
+
+.feedingSectionTitle {
+  margin-top: 12px;
+}
+
+.feedingSectionTitle h2 {
+  margin-bottom: 4px;
+}
+
+.feedingSectionTitle p {
+  margin: 0;
+  color: #67736f;
+}
+
+.feedingList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.feedingItem {
+  padding: 18px;
+  border: 1px solid #dce4e0;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.feedingItem p {
+  margin: 8px 0 0;
+}
+
+.feedingItemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.feedingItemHeader > div:first-child {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.feedingItemActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.feedingMessage {
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.feedingSuccess {
+  border: 1px solid #9ccfb1;
+  background: #effaf3;
+  color: #23734b;
+}
+
+.feedingError {
+  border: 1px solid #e5a1a1;
+  background: #fff3f3;
+  color: #a52a2a;
+}
+
+.dangerButton {
+  border-color: #e7b1b1;
+  color: #b93434;
+}
+
+.dangerButton:hover {
+  background: #fff0f0;
+}
+
+@media (max-width: 800px) {
+  .feedingToolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .feedingToolbar select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .feedingItemHeader {
+    flex-direction: column;
+  }
+
+  .feedingItemActions {
+    width: 100%;
+  }
+
+  .feedingItemActions button {
+    flex: 1;
+  }
+}

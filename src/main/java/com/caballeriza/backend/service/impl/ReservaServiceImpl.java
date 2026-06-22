@@ -7,6 +7,11 @@ import com.caballeriza.backend.repository.ReservaRepository;
 import com.caballeriza.backend.service.ReservaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import java.util.Comparator;
+import java.util.Objects;
+
 
 import java.time.LocalDate;
 import java.util.List;
@@ -28,6 +33,37 @@ public class ReservaServiceImpl implements ReservaService {
     public List<Reserva> listarPorRango(LocalDate inicio, LocalDate fin) {
         return reservaRepository.findByFechaBetween(inicio, fin);
     }
+    @Override
+    public List<Reserva> filtrar(
+            TipoReserva tipo,
+            LocalDate fecha,
+            EstadoReserva estado,
+            LocalDate inicio,
+            LocalDate fin
+    ) {
+        return reservaRepository.findAll()
+                .stream()
+                .filter(reserva ->
+                        tipo == null || reserva.getTipo() == tipo
+                )
+                .filter(reserva ->
+                        fecha == null || reserva.getFecha().equals(fecha)
+                )
+                .filter(reserva ->
+                        estado == null || reserva.getEstado() == estado
+                )
+                .filter(reserva ->
+                        inicio == null || !reserva.getFecha().isBefore(inicio)
+                )
+                .filter(reserva ->
+                        fin == null || !reserva.getFecha().isAfter(fin)
+                )
+                .sorted(
+                        Comparator.comparing(Reserva::getFecha)
+                                .thenComparing(Reserva::getHoraInicio)
+                )
+                .toList();
+    }
 
     @Override
     public Reserva obtenerPorId(Long id) {
@@ -38,9 +74,13 @@ public class ReservaServiceImpl implements ReservaService {
     @Override
     public Reserva guardar(Reserva reserva) {
         asignarRelaciones(reserva);
+
         if (reserva.getEstado() == null) {
             reserva.setEstado(EstadoReserva.PROGRAMADA);
         }
+
+        validarReserva(reserva, null);
+
         return reservaRepository.save(reserva);
     }
 
@@ -49,16 +89,26 @@ public class ReservaServiceImpl implements ReservaService {
         Reserva reserva = obtenerPorId(id);
 
         reserva.setTipo(datos.getTipo());
-        reserva.setEstado(datos.getEstado() != null ? datos.getEstado() : reserva.getEstado());
+        reserva.setEstado(
+                datos.getEstado() != null
+                        ? datos.getEstado()
+                        : reserva.getEstado()
+        );
         reserva.setFecha(datos.getFecha());
         reserva.setHoraInicio(datos.getHoraInicio());
         reserva.setHoraFin(datos.getHoraFin());
         reserva.setCliente(datos.getCliente());
         reserva.setObservaciones(datos.getObservaciones());
+
+        reserva.setCantidadPersonas(datos.getCantidadPersonas());
+        reserva.setCupoMaximo(datos.getCupoMaximo());
+
         reserva.setCaballo(datos.getCaballo());
         reserva.setEmpleado(datos.getEmpleado());
 
         asignarRelaciones(reserva);
+        validarReserva(reserva, id);
+
         return reservaRepository.save(reserva);
     }
 
@@ -72,6 +122,95 @@ public class ReservaServiceImpl implements ReservaService {
     @Override
     public void eliminar(Long id) {
         reservaRepository.delete(obtenerPorId(id));
+    }
+
+    private void validarReserva(
+            Reserva reserva,
+            Long idReservaActual
+    ) {
+        if (!reserva.getHoraFin().isAfter(reserva.getHoraInicio())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "La hora final debe ser posterior a la hora inicial"
+            );
+        }
+
+        if (reserva.getCantidadPersonas() == null) {
+            reserva.setCantidadPersonas(1);
+        }
+
+        if (reserva.getTipo() != TipoReserva.PASEO) {
+            reserva.setCantidadPersonas(1);
+            reserva.setCupoMaximo(null);
+            return;
+        }
+
+        if (reserva.getEstado() == EstadoReserva.CANCELADA) {
+            return;
+        }
+
+        if (
+                reserva.getCupoMaximo() == null
+                        || reserva.getCupoMaximo() < 1
+        ) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Debe indicar el cupo máximo del paseo"
+            );
+        }
+
+        List<Reserva> reservasDelMismoPaseo =
+                reservaRepository
+                        .findByTipoAndFechaAndHoraInicioAndHoraFinAndEstadoNot(
+                                TipoReserva.PASEO,
+                                reserva.getFecha(),
+                                reserva.getHoraInicio(),
+                                reserva.getHoraFin(),
+                                EstadoReserva.CANCELADA
+                        )
+                        .stream()
+                        .filter(actual ->
+                                idReservaActual == null
+                                        || !Objects.equals(
+                                        actual.getId(),
+                                        idReservaActual
+                                )
+                        )
+                        .toList();
+
+        Integer cupoExistente = reservasDelMismoPaseo
+                .stream()
+                .map(Reserva::getCupoMaximo)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+
+        if (cupoExistente != null) {
+            reserva.setCupoMaximo(cupoExistente);
+        }
+
+        int personasReservadas = reservasDelMismoPaseo
+                .stream()
+                .mapToInt(actual ->
+                        actual.getCantidadPersonas() == null
+                                ? 1
+                                : actual.getCantidadPersonas()
+                )
+                .sum();
+
+        int totalNuevo =
+                personasReservadas + reserva.getCantidadPersonas();
+
+        if (totalNuevo > reserva.getCupoMaximo()) {
+            int disponibles =
+                    reserva.getCupoMaximo() - personasReservadas;
+
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "No hay cupos suficientes. Disponibles: "
+                            + Math.max(disponibles, 0)
+            );
+        }
     }
 
     private void asignarRelaciones(Reserva reserva) {

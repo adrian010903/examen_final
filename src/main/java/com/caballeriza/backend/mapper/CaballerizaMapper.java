@@ -144,6 +144,12 @@ public class CaballerizaMapper {
                 .horaFin(reserva.getHoraFin())
                 .cliente(reserva.getCliente())
                 .observaciones(reserva.getObservaciones())
+                .cantidadPersonas(
+                        reserva.getCantidadPersonas() == null
+                                ? 1
+                                : reserva.getCantidadPersonas()
+                )
+                .cupoMaximo(reserva.getCupoMaximo())
                 .caballoId(reserva.getCaballo() != null ? reserva.getCaballo().getId() : null)
                 .nombreCaballo(reserva.getCaballo() != null ? reserva.getCaballo().getNombre() : null)
                 .empleadoId(reserva.getEmpleado() != null ? reserva.getEmpleado().getId() : null)
