@@ -36,6 +36,12 @@ public class ReservaDTO {
 
     private String observaciones;
 
+    @Min(value = 1, message = "La cantidad de personas debe ser mayor a cero")
+    private Integer cantidadPersonas;
+
+    @Min(value = 1, message = "El cupo máximo debe ser mayor a cero")
+    private Integer cupoMaximo;
+
     @NotNull(message = "El caballo es obligatorio")
     private Long caballoId;
 

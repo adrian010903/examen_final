@@ -43,6 +43,15 @@ public class Reserva {
 
     private String observaciones;
 
+    @Min(value = 1, message = "La cantidad de personas debe ser mayor a cero")
+    @Column(name = "cantidad_personas")
+    @Builder.Default
+    private Integer cantidadPersonas = 1;
+
+    @Min(value = 1, message = "El cupo máximo debe ser mayor a cero")
+    @Column(name = "cupo_maximo")
+    private Integer cupoMaximo;
+
     @ManyToOne
     @JoinColumn(name = "caballo_id", nullable = false)
     private Caballo caballo;
