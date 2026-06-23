@@ -428,3 +428,5 @@ tr:last-child td { border-bottom: 0; }
     flex: 1;
   }
 }
+.usersToolbar {
+  display: flex
