@@ -6,6 +6,7 @@ import com.caballeriza.backend.model.Empleado;
 import com.caballeriza.backend.service.EmpleadoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,16 +20,23 @@ public class EmpleadoController {
     private final EmpleadoService empleadoService;
 
     @GetMapping
-    public List<EmpleadoDTO> listar() {
-        return empleadoService.listar()
+    public List<EmpleadoDTO> listar(Authentication authentication) {
+        List<Empleado> empleados = esCuidador(authentication)
+                ? empleadoService.listarPorContacto(authentication.getName())
+                : empleadoService.listar();
+
+        return empleados
                 .stream()
                 .map(CaballerizaMapper::toEmpleadoDTO)
                 .toList();
     }
 
     @GetMapping("/{id}")
-    public EmpleadoDTO obtenerPorId(@PathVariable Long id) {
-        Empleado empleado = empleadoService.obtenerPorId(id);
+    public EmpleadoDTO obtenerPorId(@PathVariable Long id, Authentication authentication) {
+        Empleado empleado = esCuidador(authentication)
+                ? empleadoService.obtenerPorIdParaContacto(id, authentication.getName())
+                : empleadoService.obtenerPorId(id);
+
         return CaballerizaMapper.toEmpleadoDTO(empleado);
     }
 
@@ -49,5 +57,12 @@ public class EmpleadoController {
     @DeleteMapping("/{id}")
     public void eliminar(@PathVariable Long id) {
         empleadoService.eliminar(id);
+    }
+
+    private boolean esCuidador(Authentication authentication) {
+        return authentication != null
+                && authentication.getAuthorities()
+                .stream()
+                .anyMatch(authority -> "ROLE_CUIDADOR".equals(authority.getAuthority()));
     }
 }

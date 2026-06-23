@@ -15,10 +15,12 @@ import {
 import { useMemo, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
+import { getUserRole } from '../services/roleAccess';
 
 const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: Gauge, roles: ['ADMINISTRADOR', 'VETERINARIO', 'CUIDADOR', 'CLIENTE'] },
+  { to: '/dashboard', label: 'Dashboard', icon: Gauge, roles: ['ADMINISTRADOR', 'VETERINARIO'] },
   { to: '/caballos', label: 'Caballos', icon: Shield, roles: ['ADMINISTRADOR', 'VETERINARIO', 'CUIDADOR'] },
+  { to: '/caballos', label: 'Mis caballos', icon: Shield, roles: ['CLIENTE'] },
   { to: '/historial-medico', label: 'Historial medico', icon: HeartPulse, roles: ['ADMINISTRADOR', 'VETERINARIO'] },
   { to: '/empleados', label: 'Empleados', icon: Users, roles: ['ADMINISTRADOR'] },
   { to: '/turnos-tareas', label: 'Turnos y tareas', icon: ClipboardList, roles: ['ADMINISTRADOR', 'CUIDADOR'] },
@@ -45,7 +47,7 @@ export default function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const user = authService.getUser();
-  const role = user?.role || 'ADMINISTRADOR';
+  const role = getUserRole(user);
   const visibleNavItems = navItems.filter((item) => item.roles.includes(role));
 
   const title = useMemo(() => {

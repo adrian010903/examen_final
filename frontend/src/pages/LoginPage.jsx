@@ -3,9 +3,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FormField from '../components/FormField';
 import { authService } from '../services/authService';
+import { getHomePath, getUserRole } from '../services/roleAccess';
 
 const loginInitial = { email: '', password: '' };
-const registerInitial = { nombre: '', email: '', password: '', role: 'ADMINISTRADOR' };
+const registerInitial = { nombre: '', email: '', password: '', role: 'CLIENTE' };
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ export default function LoginPage() {
     if (!registerForm.nombre.trim()) nextErrors.nombre = 'El nombre es obligatorio';
     if (!registerForm.email.trim()) nextErrors.email = 'El correo es obligatorio';
     if (registerForm.password.length < 6) nextErrors.password = 'Minimo 6 caracteres';
-    if (!registerForm.role) nextErrors.role = 'Seleccione un rol';
+
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   }
@@ -45,7 +46,8 @@ export default function LoginPage() {
         if (!validateRegister()) return;
         await authService.register(registerForm);
       }
-      navigate('/dashboard');
+      const user = authService.getUser();
+      navigate(getHomePath(getUserRole(user)));
     } catch (exception) {
       setMessage(exception.message);
     }
@@ -111,16 +113,7 @@ export default function LoginPage() {
             />
           </FormField>
 
-          {mode === 'register' && (
-            <FormField label="Rol" error={errors.role}>
-              <select value={registerForm.role} onChange={(event) => setRegisterForm({ ...registerForm, role: event.target.value })}>
-                <option value="ADMINISTRADOR">Administrador</option>
-                <option value="CUIDADOR">Cuidador</option>
-                <option value="VETERINARIO">Veterinario</option>
-                <option value="CLIENTE">Cliente</option>
-              </select>
-            </FormField>
-          )}
+
 
           <button className="primaryButton" type="submit">
             {mode === 'login' ? <LogIn size={18} /> : <UserPlus size={18} />}

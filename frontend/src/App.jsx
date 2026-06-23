@@ -14,6 +14,30 @@ import InventoryPage from './pages/InventoryPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import MedicalHistoryPage from './pages/MedicalHistoryPage.jsx';
 import TasksPage from './pages/TasksPage.jsx';
+import { authService } from './services/authService.js';
+import { getHomePath, getUserRole } from './services/roleAccess.js';
+
+const dashboardRoles = ['ADMINISTRADOR', 'VETERINARIO'];
+const horseRoles = ['ADMINISTRADOR', 'VETERINARIO', 'CUIDADOR', 'CLIENTE'];
+const medicalRoles = ['ADMINISTRADOR', 'VETERINARIO'];
+const adminRoles = ['ADMINISTRADOR'];
+const taskRoles = ['ADMINISTRADOR', 'CUIDADOR'];
+const calendarRoles = ['ADMINISTRADOR', 'CLIENTE'];
+const feedingRoles = ['ADMINISTRADOR', 'CUIDADOR'];
+const alertsRoles = ['ADMINISTRADOR', 'VETERINARIO', 'CUIDADOR'];
+
+function HomeRedirect() {
+  const role = getUserRole(authService.getUser());
+  return <Navigate to={getHomePath(role)} replace />;
+}
+
+function RolePage({ allowedRoles, children }) {
+  return (
+    <ProtectedRoute allowedRoles={allowedRoles}>
+      {children}
+    </ProtectedRoute>
+  );
+}
 
 export default function App() {
   return (
@@ -26,23 +50,23 @@ export default function App() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/caballos" element={<HorseList />} />
-        <Route path="/caballos/nuevo" element={<HorseForm />} />
-        <Route path="/caballos/:id" element={<HorseDetail />} />
-        <Route path="/caballos/:id/editar" element={<HorseForm />} />
-        <Route path="/historial-medico" element={<MedicalHistoryPage />} />
-        <Route path="/empleados" element={<EmployeeList />} />
-        <Route path="/empleados/nuevo" element={<EmployeeForm />} />
-        <Route path="/empleados/:id/editar" element={<EmployeeForm />} />
-        <Route path="/turnos-tareas" element={<TasksPage />} />
-        <Route path="/calendario" element={<CalendarPage />} />
-        <Route path="/alimentacion" element={<FeedingPage />} />
-        <Route path="/inventario" element={<InventoryPage />} />
-        <Route path="/alertas" element={<AlertsPage />} />
+        <Route index element={<HomeRedirect />} />
+        <Route path="/dashboard" element={<RolePage allowedRoles={dashboardRoles}><Dashboard /></RolePage>} />
+        <Route path="/caballos" element={<RolePage allowedRoles={horseRoles}><HorseList /></RolePage>} />
+        <Route path="/caballos/nuevo" element={<RolePage allowedRoles={horseRoles}><HorseForm /></RolePage>} />
+        <Route path="/caballos/:id" element={<RolePage allowedRoles={horseRoles}><HorseDetail /></RolePage>} />
+        <Route path="/caballos/:id/editar" element={<RolePage allowedRoles={horseRoles}><HorseForm /></RolePage>} />
+        <Route path="/historial-medico" element={<RolePage allowedRoles={medicalRoles}><MedicalHistoryPage /></RolePage>} />
+        <Route path="/empleados" element={<RolePage allowedRoles={adminRoles}><EmployeeList /></RolePage>} />
+        <Route path="/empleados/nuevo" element={<RolePage allowedRoles={adminRoles}><EmployeeForm /></RolePage>} />
+        <Route path="/empleados/:id/editar" element={<RolePage allowedRoles={adminRoles}><EmployeeForm /></RolePage>} />
+        <Route path="/turnos-tareas" element={<RolePage allowedRoles={taskRoles}><TasksPage /></RolePage>} />
+        <Route path="/calendario" element={<RolePage allowedRoles={calendarRoles}><CalendarPage /></RolePage>} />
+        <Route path="/alimentacion" element={<RolePage allowedRoles={feedingRoles}><FeedingPage /></RolePage>} />
+        <Route path="/inventario" element={<RolePage allowedRoles={feedingRoles}><InventoryPage /></RolePage>} />
+        <Route path="/alertas" element={<RolePage allowedRoles={alertsRoles}><AlertsPage /></RolePage>} />
       </Route>
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<HomeRedirect />} />
     </Routes>
   );
 }

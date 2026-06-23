@@ -47,6 +47,8 @@ class ReservaServiceTests {
                 .horaInicio(LocalTime.of(8, 0))
                 .horaFin(LocalTime.of(9, 0))
                 .cliente("Cliente prueba")
+                .cantidadPersonas(1)
+                .cupoMaximo(10)
                 .caballo(Caballo.builder().id(caballo.getId()).build())
                 .empleado(Empleado.builder().id(empleado.getId()).build())
                 .build());

@@ -10,7 +10,11 @@ public interface TurnoService {
 
     List<Turno> listarPorEmpleado(Long empleadoId);
 
+    List<Turno> listarPorEmpleadoContacto(String contacto);
+
     Turno obtenerPorId(Long id);
+
+    Turno obtenerPorIdParaEmpleado(Long id, String contacto);
 
     Turno guardar(Turno turno);
 

@@ -3,20 +3,39 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import { mockHorses, mockMedicalRecords, mockTasks } from '../data/mockData';
+import { authService } from '../services/authService';
 import { horseService } from '../services/horseService';
 import { medicalService } from '../services/medicalService';
+import { getUserRole } from '../services/roleAccess';
 import { taskService } from '../services/taskService';
 
 export default function HorseDetail() {
   const { id } = useParams();
+  const isClient = getUserRole(authService.getUser()) === 'CLIENTE';
   const [horse, setHorse] = useState(null);
+  const [error, setError] = useState('');
   const [records, setRecords] = useState([]);
   const [tasks, setTasks] = useState([]);
 
   useEffect(() => {
+    setError('');
+
     horseService.get(id)
       .then(setHorse)
-      .catch(() => setHorse(mockHorses.find((item) => String(item.id) === String(id)) || mockHorses[0]));
+      .catch(() => {
+        if (isClient) {
+          setError('No puede ver este caballo o ya no esta disponible.');
+          return;
+        }
+
+        setHorse(mockHorses.find((item) => String(item.id) === String(id)) || mockHorses[0]);
+      });
+
+    if (isClient) {
+      setRecords([]);
+      setTasks([]);
+      return;
+    }
 
     medicalService.listByHorse(id)
       .then(setRecords)
@@ -25,8 +44,9 @@ export default function HorseDetail() {
     taskService.listByHorse(id)
       .then(setTasks)
       .catch(() => setTasks(mockTasks.filter((task) => String(task.caballoId) === String(id))));
-  }, [id]);
+  }, [id, isClient]);
 
+  if (error) return <div className="stateBox stateError">{error}</div>;
   if (!horse) return <div className="stateBox">Cargando detalle...</div>;
 
   return (
@@ -56,28 +76,30 @@ export default function HorseDetail() {
         </article>
       </section>
 
-      <section className="dashboardGrid">
-        <article className="panel">
-          <div className="panelHeader"><h3>Historial medico</h3></div>
-          {records.map((record) => (
-            <div className="listRow" key={record.id}>
-              <strong>{record.tipo}</strong>
-              <span>{record.fecha}</span>
-              <p>{record.descripcion}</p>
-            </div>
-          ))}
-        </article>
-        <article className="panel">
-          <div className="panelHeader"><h3>Tareas</h3></div>
-          {tasks.map((task) => (
-            <div className="listRow" key={task.id}>
-              <strong>{task.descripcion}</strong>
-              <span>{task.fecha}</span>
-              <p>{task.completada ? 'Completada' : 'Pendiente'}</p>
-            </div>
-          ))}
-        </article>
-      </section>
+      {!isClient && (
+        <section className="dashboardGrid">
+          <article className="panel">
+            <div className="panelHeader"><h3>Historial medico</h3></div>
+            {records.map((record) => (
+              <div className="listRow" key={record.id}>
+                <strong>{record.tipo}</strong>
+                <span>{record.fecha}</span>
+                <p>{record.descripcion}</p>
+              </div>
+            ))}
+          </article>
+          <article className="panel">
+            <div className="panelHeader"><h3>Tareas</h3></div>
+            {tasks.map((task) => (
+              <div className="listRow" key={task.id}>
+                <strong>{task.descripcion}</strong>
+                <span>{task.fecha}</span>
+                <p>{task.completada ? 'Completada' : 'Pendiente'}</p>
+              </div>
+            ))}
+          </article>
+        </section>
+      )}
     </div>
   );
 }

@@ -31,4 +31,8 @@ public class CaballoDTO {
     private Double peso;
 
     private String fotoUrl;
+
+    private Long clienteId;
+
+    private String nombreCliente;
 }

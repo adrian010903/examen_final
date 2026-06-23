@@ -4,6 +4,7 @@ import com.caballeriza.backend.Security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -34,6 +35,13 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
+                        // LECTURA DE EMPLEADOS PARA ASIGNACIONES OPERATIVAS
+                        .requestMatchers(HttpMethod.GET, "/api/empleados/**")
+                        .hasAnyRole(
+                                "ADMINISTRADOR",
+                                "CUIDADOR"
+                        )
+
                         // SOLO ADMINISTRADOR
                         .requestMatchers("/api/empleados/**")
                         .hasRole("ADMINISTRADOR")
@@ -45,9 +53,19 @@ public class SecurityConfig {
                                 "VETERINARIO"
                         )
 
+                        // CABALLOS
+                        .requestMatchers(
+                                "/api/caballos/**"
+                        )
+                        .hasAnyRole(
+                                "ADMINISTRADOR",
+                                "VETERINARIO",
+                                "CUIDADOR",
+                                "CLIENTE"
+                        )
+
                         // ADMINISTRADOR, VETERINARIO Y CUIDADOR
                         .requestMatchers(
-                                "/api/caballos/**",
                                 "/api/tareas/**",
                                 "/api/turnos/**"
                         )
