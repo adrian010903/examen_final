@@ -15,6 +15,8 @@ public class CaballerizaMapper {
                 .sexo(caballo.getSexo())
                 .peso(caballo.getPeso())
                 .fotoUrl(caballo.getFotoUrl())
+                .clienteId(caballo.getCliente() != null ? caballo.getCliente().getId() : null)
+                .nombreCliente(caballo.getCliente() != null ? caballo.getCliente().getNombre() : null)
                 .build();
     }
 

@@ -20,6 +20,8 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
             EstadoReserva estado
     );
 
+    List<Reserva> findByClienteUsuarioEmail(String email);
+
     List<Reserva> findByTipoAndFechaAndHoraInicioAndHoraFinAndEstadoNot(
             TipoReserva tipo,
             LocalDate fecha,

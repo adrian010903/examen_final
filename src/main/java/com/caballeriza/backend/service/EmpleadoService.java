@@ -8,7 +8,11 @@ public interface EmpleadoService {
 
     List<Empleado> listar();
 
+    List<Empleado> listarPorContacto(String contacto);
+
     Empleado obtenerPorId(Long id);
+
+    Empleado obtenerPorIdParaContacto(Long id, String contacto);
 
     Empleado guardar(Empleado empleado);
 

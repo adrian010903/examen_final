@@ -12,9 +12,11 @@ import FormField from '../components/FormField';
 import PageHeader from '../components/PageHeader';
 import { mockEmployees, mockHorses } from '../data/mockData';
 import { useAsyncData } from '../hooks/useAsyncData';
+import { authService } from '../services/authService';
 import { employeeService } from '../services/employeeService';
 import { horseService } from '../services/horseService';
 import { reservationService } from '../services/reservationService';
+import { getUserRole } from '../services/roleAccess';
 
 const emptyReservation = {
   tipo: 'PASEO',
@@ -36,12 +38,24 @@ const emptyFilters = {
   estado: ''
 };
 
+const loadNoEmployees = () => Promise.resolve([]);
+const emptyList = [];
+
 export default function CalendarPage() {
-  const horses = useAsyncData(horseService.list, mockHorses);
-  const employees = useAsyncData(employeeService.list, mockEmployees);
+  const user = authService.getUser();
+  const isClient = getUserRole(user) === 'CLIENTE';
+  const initialReservation = {
+    ...emptyReservation,
+    cliente: isClient ? user?.nombre || user?.email || '' : ''
+  };
+  const horses = useAsyncData(horseService.list, isClient ? emptyList : mockHorses);
+  const employees = useAsyncData(
+    isClient ? loadNoEmployees : employeeService.list,
+    isClient ? emptyList : mockEmployees
+  );
 
   const [reservations, setReservations] = useState([]);
-  const [form, setForm] = useState({ ...emptyReservation });
+  const [form, setForm] = useState(initialReservation);
   const [filters, setFilters] = useState({ ...emptyFilters });
   const [errors, setErrors] = useState({});
   const [editingId, setEditingId] = useState(null);
@@ -207,7 +221,7 @@ export default function CalendarPage() {
 
   function resetForm() {
     setEditingId(null);
-    setForm({ ...emptyReservation });
+    setForm(initialReservation);
     setErrors({});
   }
 
@@ -307,81 +321,87 @@ export default function CalendarPage() {
   return (
     <div className="stack">
       <PageHeader
-        title="Calendario y reservas"
-        description="Agenda de citas veterinarias, montas, paseos y entrenamientos."
+        title={isClient ? 'Agendar reserva' : 'Calendario y reservas'}
+        description={
+          isClient
+            ? 'Solicite una cita, paseo, monta o entrenamiento.'
+            : 'Agenda de citas veterinarias, montas, paseos y entrenamientos.'
+        }
       />
 
-      <section className="panel">
-        <div className="reservationSectionHeader">
-          <div>
-            <h3>Filtros de reservas</h3>
-            <p>Busque por tipo, fecha o estado.</p>
+      {!isClient && (
+        <section className="panel">
+          <div className="reservationSectionHeader">
+            <div>
+              <h3>Filtros de reservas</h3>
+              <p>Busque por tipo, fecha o estado.</p>
+            </div>
+
+            <button
+              className="secondaryButton"
+              type="button"
+              onClick={clearFilters}
+            >
+              <X size={16} />
+              Limpiar filtros
+            </button>
           </div>
 
-          <button
-            className="secondaryButton"
-            type="button"
-            onClick={clearFilters}
-          >
-            <X size={16} />
-            Limpiar filtros
-          </button>
-        </div>
+          <div className="reservationFilters">
+            <FormField label="Tipo">
+              <select
+                value={filters.tipo}
+                onChange={(event) =>
+                  setFilters({
+                    ...filters,
+                    tipo: event.target.value
+                  })
+                }
+              >
+                <option value="">Todos</option>
+                <option value="CITA_VETERINARIA">
+                  Cita veterinaria
+                </option>
+                <option value="MONTA">Monta</option>
+                <option value="PASEO">Paseo</option>
+                <option value="ENTRENAMIENTO">
+                  Entrenamiento
+                </option>
+              </select>
+            </FormField>
 
-        <div className="reservationFilters">
-          <FormField label="Tipo">
-            <select
-              value={filters.tipo}
-              onChange={(event) =>
-                setFilters({
-                  ...filters,
-                  tipo: event.target.value
-                })
-              }
-            >
-              <option value="">Todos</option>
-              <option value="CITA_VETERINARIA">
-                Cita veterinaria
-              </option>
-              <option value="MONTA">Monta</option>
-              <option value="PASEO">Paseo</option>
-              <option value="ENTRENAMIENTO">
-                Entrenamiento
-              </option>
-            </select>
-          </FormField>
+            <FormField label="Fecha">
+              <input
+                type="date"
+                value={filters.fecha}
+                onChange={(event) =>
+                  setFilters({
+                    ...filters,
+                    fecha: event.target.value
+                  })
+                }
+              />
+            </FormField>
 
-          <FormField label="Fecha">
-            <input
-              type="date"
-              value={filters.fecha}
-              onChange={(event) =>
-                setFilters({
-                  ...filters,
-                  fecha: event.target.value
-                })
-              }
-            />
-          </FormField>
-
-          <FormField label="Estado">
-            <select
-              value={filters.estado}
-              onChange={(event) =>
-                setFilters({
-                  ...filters,
-                  estado: event.target.value
-                })
-              }
-            >
-              <option value="">Todos</option>
-              <option value="PROGRAMADA">Programada</option>
-              <option value="CANCELADA">Cancelada</option>
-              <option value="COMPLETADA">Completada</option>
-            </select>
-          </FormField>
-        </div>
-      </section>
+            <FormField label="Estado">
+              <select
+                value={filters.estado}
+                onChange={(event) =>
+                  setFilters({
+                    ...filters,
+                    estado: event.target.value
+                  })
+                }
+              >
+                <option value="">Todos</option>
+                <option value="PROGRAMADA">Programada</option>
+                <option value="CANCELADA">Cancelada</option>
+                <option value="COMPLETADA">Completada</option>
+              </select>
+            </FormField>
+          </div>
+        </section>
+      )}
 
       {requestError && (
         <div className="reservationMessage reservationError">
@@ -395,7 +415,7 @@ export default function CalendarPage() {
         </div>
       )}
 
-      <section className="dashboardGrid">
+      <section className={isClient ? 'stack' : 'dashboardGrid'}>
         <form className="panel" onSubmit={handleSubmit}>
           <div className="reservationSectionHeader">
             <h3>
@@ -441,6 +461,7 @@ export default function CalendarPage() {
             <FormField label="Cliente" error={errors.cliente}>
               <input
                 value={form.cliente}
+                readOnly={isClient}
                 onChange={(event) =>
                   setForm({
                     ...form,
@@ -470,25 +491,27 @@ export default function CalendarPage() {
               </select>
             </FormField>
 
-            <FormField label="Responsable">
-              <select
-                value={form.empleadoId}
-                onChange={(event) =>
-                  setForm({
-                    ...form,
-                    empleadoId: event.target.value
-                  })
-                }
-              >
-                <option value="">Sin asignar</option>
+            {!isClient && (
+              <FormField label="Responsable">
+                <select
+                  value={form.empleadoId}
+                  onChange={(event) =>
+                    setForm({
+                      ...form,
+                      empleadoId: event.target.value
+                    })
+                  }
+                >
+                  <option value="">Sin asignar</option>
 
-                {employees.data.map((employee) => (
-                  <option key={employee.id} value={employee.id}>
-                    {employee.nombre}
-                  </option>
-                ))}
-              </select>
-            </FormField>
+                  {employees.data.map((employee) => (
+                    <option key={employee.id} value={employee.id}>
+                      {employee.nombre}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+            )}
 
             <FormField label="Fecha" error={errors.fecha}>
               <input
@@ -635,18 +658,22 @@ export default function CalendarPage() {
                       {reservation.cliente}
                     </p>
 
+                    {!isClient && (
                     <p>
                       {reservation.nombreEmpleado ||
                         'Sin responsable'}
                       {' · '}
                       {reservation.estado}
                     </p>
+                    )}
+
+                    {isClient && <p>{reservation.estado}</p>}
 
                     {reservation.observaciones && (
                       <p>{reservation.observaciones}</p>
                     )}
 
-                    {capacity && (
+                    {!isClient && capacity && (
                       <div
                         className={
                           capacity.available === 0

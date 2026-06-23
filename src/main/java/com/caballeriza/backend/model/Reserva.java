@@ -59,4 +59,8 @@ public class Reserva {
     @ManyToOne
     @JoinColumn(name = "empleado_id")
     private Empleado empleado;
+
+    @ManyToOne
+    @JoinColumn(name = "cliente_usuario_id")
+    private User clienteUsuario;
 }

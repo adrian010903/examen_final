@@ -11,6 +11,8 @@ public interface ReservaService {
 
     List<Reserva> listar();
 
+    List<Reserva> listarPorCliente(String email);
+
     List<Reserva> listarPorRango(
             LocalDate inicio,
             LocalDate fin
@@ -26,11 +28,19 @@ public interface ReservaService {
 
     Reserva obtenerPorId(Long id);
 
+    Reserva obtenerPorIdParaCliente(Long id, String email);
+
     Reserva guardar(Reserva reserva);
+
+    Reserva guardarParaCliente(Reserva reserva, String email);
 
     Reserva actualizar(Long id, Reserva reserva);
 
+    Reserva actualizarParaCliente(Long id, Reserva reserva, String email);
+
     Reserva cancelar(Long id);
+
+    Reserva cancelarParaCliente(Long id, String email);
 
     void eliminar(Long id);
 }

@@ -5,19 +5,24 @@ import PageHeader from '../components/PageHeader';
 import StatusMessage from '../components/StatusMessage';
 import { mockEmployees, mockHorses, mockShifts, mockTasks } from '../data/mockData';
 import { useAsyncData } from '../hooks/useAsyncData';
+import { authService } from '../services/authService';
 import { employeeService } from '../services/employeeService';
 import { horseService } from '../services/horseService';
+import { getUserRole } from '../services/roleAccess';
 import { shiftService } from '../services/shiftService';
 import { taskService } from '../services/taskService';
 
 const emptyTask = { descripcion: '', fecha: '', empleadoId: '', caballoId: '', completada: false };
 const emptyShift = { fecha: '', horaInicio: '', horaFin: '', empleadoId: '' };
+const emptyList = [];
+const loadEmptyList = () => Promise.resolve([]);
 
 export default function TasksPage() {
+  const isCaregiver = getUserRole(authService.getUser()) === 'CUIDADOR';
   const tasks = useAsyncData(taskService.list, mockTasks);
   const shifts = useAsyncData(shiftService.list, mockShifts);
-  const employees = useAsyncData(employeeService.list, mockEmployees);
-  const horses = useAsyncData(horseService.list, mockHorses);
+  const employees = useAsyncData(isCaregiver ? loadEmptyList : employeeService.list, isCaregiver ? emptyList : mockEmployees);
+  const horses = useAsyncData(isCaregiver ? loadEmptyList : horseService.list, isCaregiver ? emptyList : mockHorses);
   const [form, setForm] = useState(emptyTask);
   const [shiftForm, setShiftForm] = useState(emptyShift);
   const [errors, setErrors] = useState({});
@@ -96,7 +101,12 @@ export default function TasksPage() {
 
   return (
     <div className="stack">
-      <PageHeader title="Turnos y tareas" description={`${pendingCount} tareas pendientes en la operacion actual.`} />
+      <PageHeader
+        title={isCaregiver ? 'Mis turnos y tareas' : 'Turnos y tareas'}
+        description={`${pendingCount} tareas pendientes.`}
+      />
+
+      {!isCaregiver && (
       <section className="dashboardGrid">
         <form className="panel" onSubmit={handleSubmit}>
           <div className="panelHeader"><h3>Nueva tarea</h3></div>
@@ -140,6 +150,7 @@ export default function TasksPage() {
           <button className="primaryButton" type="submit"><Plus size={18} />Crear turno</button>
         </form>
       </section>
+      )}
 
       <section className="panel">
         <div className="panelHeader"><h3>Turnos asignados</h3></div>

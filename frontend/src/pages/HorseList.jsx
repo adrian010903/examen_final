@@ -4,10 +4,18 @@ import PageHeader from '../components/PageHeader';
 import StatusMessage from '../components/StatusMessage';
 import { mockHorses } from '../data/mockData';
 import { useAsyncData } from '../hooks/useAsyncData';
+import { authService } from '../services/authService';
 import { horseService } from '../services/horseService';
+import { getUserRole } from '../services/roleAccess';
+
+const emptyHorseList = [];
 
 export default function HorseList() {
-  const { data: horses, setData, loading, error } = useAsyncData(horseService.list, mockHorses);
+  const isClient = getUserRole(authService.getUser()) === 'CLIENTE';
+  const { data: horses, setData, loading, error } = useAsyncData(
+    horseService.list,
+    isClient ? emptyHorseList : mockHorses
+  );
 
   async function handleDelete(id) {
     try {
@@ -21,8 +29,12 @@ export default function HorseList() {
   return (
     <div className="stack">
       <PageHeader
-        title="Lista de caballos"
-        description="Registro general con acceso rapido al detalle y edicion."
+        title={isClient ? 'Mis caballos' : 'Lista de caballos'}
+        description={
+          isClient
+            ? 'Registre y mantenga actualizados los datos de sus caballos.'
+            : 'Registro general con acceso rapido al detalle y edicion.'
+        }
         actions={
           <Link className="primaryButton" to="/caballos/nuevo">
             <Plus size={18} />

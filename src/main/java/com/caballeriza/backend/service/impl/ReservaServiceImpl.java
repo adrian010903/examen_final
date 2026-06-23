@@ -4,6 +4,7 @@ import com.caballeriza.backend.model.*;
 import com.caballeriza.backend.repository.CaballoRepository;
 import com.caballeriza.backend.repository.EmpleadoRepository;
 import com.caballeriza.backend.repository.ReservaRepository;
+import com.caballeriza.backend.repository.UserRepository;
 import com.caballeriza.backend.service.ReservaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,10 +24,22 @@ public class ReservaServiceImpl implements ReservaService {
     private final ReservaRepository reservaRepository;
     private final CaballoRepository caballoRepository;
     private final EmpleadoRepository empleadoRepository;
+    private final UserRepository userRepository;
 
     @Override
     public List<Reserva> listar() {
         return reservaRepository.findAll();
+    }
+
+    @Override
+    public List<Reserva> listarPorCliente(String email) {
+        return reservaRepository.findByClienteUsuarioEmail(email)
+                .stream()
+                .sorted(
+                        Comparator.comparing(Reserva::getFecha)
+                                .thenComparing(Reserva::getHoraInicio)
+                )
+                .toList();
     }
 
     @Override
@@ -72,6 +85,13 @@ public class ReservaServiceImpl implements ReservaService {
     }
 
     @Override
+    public Reserva obtenerPorIdParaCliente(Long id, String email) {
+        Reserva reserva = obtenerPorId(id);
+        validarReservaDeCliente(reserva, email);
+        return reserva;
+    }
+
+    @Override
     public Reserva guardar(Reserva reserva) {
         asignarRelaciones(reserva);
 
@@ -82,6 +102,18 @@ public class ReservaServiceImpl implements ReservaService {
         validarReserva(reserva, null);
 
         return reservaRepository.save(reserva);
+    }
+
+    @Override
+    public Reserva guardarParaCliente(Reserva reserva, String email) {
+        User cliente = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        reserva.setClienteUsuario(cliente);
+        reserva.setCliente(cliente.getNombre());
+        reserva.setEmpleado(null);
+
+        return guardar(reserva);
     }
 
     @Override
@@ -113,8 +145,24 @@ public class ReservaServiceImpl implements ReservaService {
     }
 
     @Override
+    public Reserva actualizarParaCliente(Long id, Reserva datos, String email) {
+        Reserva reserva = obtenerPorIdParaCliente(id, email);
+        datos.setClienteUsuario(reserva.getClienteUsuario());
+        datos.setCliente(reserva.getCliente());
+        datos.setEmpleado(null);
+        return actualizar(id, datos);
+    }
+
+    @Override
     public Reserva cancelar(Long id) {
         Reserva reserva = obtenerPorId(id);
+        reserva.setEstado(EstadoReserva.CANCELADA);
+        return reservaRepository.save(reserva);
+    }
+
+    @Override
+    public Reserva cancelarParaCliente(Long id, String email) {
+        Reserva reserva = obtenerPorIdParaCliente(id, email);
         reserva.setEstado(EstadoReserva.CANCELADA);
         return reservaRepository.save(reserva);
     }
@@ -230,6 +278,19 @@ public class ReservaServiceImpl implements ReservaService {
             reserva.setEmpleado(empleado);
         } else {
             reserva.setEmpleado(null);
+        }
+    }
+
+    private void validarReservaDeCliente(Reserva reserva, String email) {
+        String emailCliente = reserva.getClienteUsuario() != null
+                ? reserva.getClienteUsuario().getEmail()
+                : null;
+
+        if (!Objects.equals(emailCliente, email)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "No puede acceder a una reserva de otro cliente"
+            );
         }
     }
 }

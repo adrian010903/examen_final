@@ -37,4 +37,8 @@ public class Caballo {
     private Double peso;
 
     private String fotoUrl;
+
+    @ManyToOne
+    @JoinColumn(name = "cliente_id")
+    private User cliente;
 }

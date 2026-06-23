@@ -4,13 +4,16 @@ import { useNavigate, useParams } from 'react-router-dom';
 import FormField from '../components/FormField';
 import PageHeader from '../components/PageHeader';
 import { mockHorses } from '../data/mockData';
+import { authService } from '../services/authService';
 import { horseService } from '../services/horseService';
+import { getUserRole } from '../services/roleAccess';
 
 const emptyHorse = { nombre: '', identificador: '', edad: '', raza: '', sexo: '', peso: '', fotoUrl: '' };
 
 export default function HorseForm() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const isClient = getUserRole(authService.getUser()) === 'CLIENTE';
   const [form, setForm] = useState(emptyHorse);
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
@@ -55,7 +58,10 @@ export default function HorseForm() {
 
   return (
     <div className="stack">
-      <PageHeader title={id ? 'Editar caballo' : 'Formulario de caballo'} description="Complete los datos obligatorios para mantener el registro actualizado." />
+      <PageHeader
+        title={id ? 'Editar caballo' : isClient ? 'Registrar caballo' : 'Formulario de caballo'}
+        description="Complete los datos obligatorios para mantener el registro actualizado."
+      />
 
       <form className="formPanel" onSubmit={handleSubmit}>
         {message && <div className="stateBox stateError">{message}</div>}

@@ -317,7 +317,6 @@ tr:last-child td { border-bottom: 0; }
   }
 }
 
-```css
 .feedingToolbar {
   display: flex;
   justify-content: space-between;

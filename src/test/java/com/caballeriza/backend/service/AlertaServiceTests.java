@@ -59,7 +59,7 @@ class AlertaServiceTests {
                 .caballo(caballo)
                 .build());
 
-        List<AlertaDTO> alertas = alertaService.listar();
+        List<AlertaDTO> alertas = alertaService.listar(null);
 
         assertThat(alertas).anyMatch(alerta -> "STOCK_BAJO".equals(alerta.getTipo()));
         assertThat(alertas).anyMatch(alerta -> "VACUNACION".equals(alerta.getTipo()));

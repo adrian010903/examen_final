@@ -7,7 +7,10 @@ import com.caballeriza.backend.model.Turno;
 import com.caballeriza.backend.service.TurnoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -20,43 +23,57 @@ public class TurnoController {
     private final TurnoService turnoService;
 
     @GetMapping
-    public List<TurnoDTO> listar() {
-        return turnoService.listar()
+    public List<TurnoDTO> listar(Authentication authentication) {
+        List<Turno> turnos = esCuidador(authentication)
+                ? turnoService.listarPorEmpleadoContacto(authentication.getName())
+                : turnoService.listar();
+
+        return turnos
                 .stream()
                 .map(CaballerizaMapper::toTurnoDTO)
                 .toList();
     }
 
     @GetMapping("/{id}")
-    public TurnoDTO obtenerPorId(@PathVariable Long id) {
-        Turno turno = turnoService.obtenerPorId(id);
+    public TurnoDTO obtenerPorId(@PathVariable Long id, Authentication authentication) {
+        Turno turno = esCuidador(authentication)
+                ? turnoService.obtenerPorIdParaEmpleado(id, authentication.getName())
+                : turnoService.obtenerPorId(id);
+
         return CaballerizaMapper.toTurnoDTO(turno);
     }
 
     @GetMapping("/empleado/{empleadoId}")
-    public List<TurnoDTO> listarPorEmpleado(@PathVariable Long empleadoId) {
-        return turnoService.listarPorEmpleado(empleadoId)
+    public List<TurnoDTO> listarPorEmpleado(@PathVariable Long empleadoId, Authentication authentication) {
+        List<Turno> turnos = esCuidador(authentication)
+                ? turnoService.listarPorEmpleadoContacto(authentication.getName())
+                : turnoService.listarPorEmpleado(empleadoId);
+
+        return turnos
                 .stream()
                 .map(CaballerizaMapper::toTurnoDTO)
                 .toList();
     }
 
     @PostMapping
-    public TurnoDTO guardar(@Valid @RequestBody TurnoDTO dto) {
+    public TurnoDTO guardar(@Valid @RequestBody TurnoDTO dto, Authentication authentication) {
+        bloquearCuidador(authentication);
         Turno turno = convertirAEntidad(dto);
         Turno guardado = turnoService.guardar(turno);
         return CaballerizaMapper.toTurnoDTO(guardado);
     }
 
     @PutMapping("/{id}")
-    public TurnoDTO actualizar(@PathVariable Long id, @Valid @RequestBody TurnoDTO dto) {
+    public TurnoDTO actualizar(@PathVariable Long id, @Valid @RequestBody TurnoDTO dto, Authentication authentication) {
+        bloquearCuidador(authentication);
         Turno turno = convertirAEntidad(dto);
         Turno actualizado = turnoService.actualizar(id, turno);
         return CaballerizaMapper.toTurnoDTO(actualizado);
     }
 
     @DeleteMapping("/{id}")
-    public void eliminar(@PathVariable Long id) {
+    public void eliminar(@PathVariable Long id, Authentication authentication) {
+        bloquearCuidador(authentication);
         turnoService.eliminar(id);
     }
 
@@ -71,5 +88,21 @@ public class TurnoController {
                 .horaFin(dto.getHoraFin())
                 .empleado(empleado)
                 .build();
+    }
+
+    private boolean esCuidador(Authentication authentication) {
+        return authentication != null
+                && authentication.getAuthorities()
+                .stream()
+                .anyMatch(authority -> "ROLE_CUIDADOR".equals(authority.getAuthority()));
+    }
+
+    private void bloquearCuidador(Authentication authentication) {
+        if (esCuidador(authentication)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "El cuidador solo puede consultar sus turnos asignados"
+            );
+        }
     }
 }

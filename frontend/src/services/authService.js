@@ -9,11 +9,19 @@ function saveSession(response, user) {
 export const authService = {
   login: async (credentials) => {
     const response = await api.post('/auth/login', credentials).then((result) => result.data);
-    return saveSession(response, { email: credentials.email, nombre: credentials.email.split('@')[0] });
+    return saveSession(response, {
+      email: response.email || credentials.email,
+      nombre: response.nombre || credentials.email.split('@')[0],
+      role: response.role
+    });
   },
   register: async (payload) => {
     const response = await api.post('/auth/register', payload).then((result) => result.data);
-    return saveSession(response, { email: payload.email, nombre: payload.nombre, role: payload.role });
+    return saveSession(response, {
+      email: response.email || payload.email,
+      nombre: response.nombre || payload.nombre,
+      role: response.role || payload.role
+    });
   },
   logout: () => {
     localStorage.removeItem(TOKEN_KEY);
@@ -22,6 +30,10 @@ export const authService = {
   isAuthenticated: () => Boolean(localStorage.getItem(TOKEN_KEY)),
   getUser: () => {
     const raw = localStorage.getItem(USER_KEY);
-    return raw ? JSON.parse(raw) : null;
+    try {
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
   }
 };
